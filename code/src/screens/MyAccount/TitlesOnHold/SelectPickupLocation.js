@@ -25,7 +25,11 @@ export const SelectPickupLocation = (props) => {
      if (_.isNumber(pickupLocationCode)) {
           pickupLocationCode = _.toString(pickupLocationCode);
      }
-     pickupLocation = pickupId.concat('_', pickupLocationCode);
+     if (pickupId != false) {
+          pickupLocation = pickupId.concat('_', pickupLocationCode);
+     }else{
+          pickupLocation = '';
+     }
 
      const [loading, setLoading] = React.useState(false);
      const [showModal, setShowModal] = React.useState(false);
