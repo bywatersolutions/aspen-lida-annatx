@@ -6,9 +6,9 @@ import { View, Image, StyleSheet, Text, useColorMode, HStack, VStack, Box } from
 import { Platform, useWindowDimensions } from 'react-native';
 import Constants from 'expo-constants';
 
-let topPadding = 7;
+let topPadding = Constants.statusBarHeight;
 if (Platform.OS === 'android') {
-     topPadding = 3;
+     topPadding = 0;
 }
 
 const HeaderLogoBar = (props) => {
@@ -60,7 +60,7 @@ export default function TitleWithLogo(props) {
      const hideBack = props.hideBack ?? false;
 
      return (
-          <VStack safeAreaTop={topPadding}>
+          <VStack mt={topPadding}>
                <HeaderLogoBar />
                <HStack safeAreaLeft={7} safeAreaRight={7} safeAreaBottom={2} safeAreaTop={2} alignItems="left" backgroundColor={theme['colors']['primary']['base']} pt={2} pb={2}>
                     {navigation.canGoBack() && !hideBack && (
