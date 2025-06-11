@@ -137,13 +137,11 @@ export const LoginScreen = () => {
                     }
 
                     if (result.catalogRegistrationCapabilities) {
-                         if (result.catalogRegistrationCapabilities.enableSelfRegistration) {
-                              if(result.catalogRegistrationCapabilities.enableSelfRegistration === '1' && result.catalogRegistrationCapabilities.enableSelfRegistrationInApp === '1') {
+                              if(String(result.catalogRegistrationCapabilities.enableSelfRegistration) === '1' && String(result.catalogRegistrationCapabilities.enableSelfRegistrationInApp === '1')) {
                                    setEnableSelfRegistration(1);
                               } else {
                                    setEnableSelfRegistration(0);
                               }
-                         }
                     }
                }
           });
