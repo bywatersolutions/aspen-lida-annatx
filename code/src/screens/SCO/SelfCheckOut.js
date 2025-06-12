@@ -22,7 +22,8 @@ export const SelfCheckOut = () => {
      const { language } = React.useContext(LanguageContext);
      const { user, cards, updateUser } = React.useContext(UserContext);
      const { checkouts, updateCheckouts } = React.useContext(CheckoutsContext);
-     const [items, setItems] = React.useState([]);
+     const passedItems = useRoute().params?.items ?? [];
+     const [items, setItems] = React.useState(passedItems);
      const { selfCheckSettings } = React.useContext(LibraryBranchContext);
 
      let startNew = useRoute().params?.startNew ?? false;
@@ -233,6 +234,7 @@ export const SelfCheckOut = () => {
                                                            type: null,
                                                            activeAccount,
                                                            startNew: false,
+                                                           items,
                                                       });
                                                  }}>
                                                       {getTermFromDictionary(language, 'add_new_item')}
