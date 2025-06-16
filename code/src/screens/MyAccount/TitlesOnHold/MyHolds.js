@@ -11,7 +11,7 @@ import { loadingSpinner } from '../../../components/loadingSpinner';
 import { DisplayMessage, DisplaySystemMessage } from '../../../components/Notifications';
 import { HoldsContext, LanguageContext, LibrarySystemContext, SystemMessagesContext, ThemeContext, UserContext } from '../../../context/initialContext';
 import { getTermFromDictionary, getTranslationsWithValues } from '../../../translations/TranslationService';
-import {getPatronCheckedOutItems, getPatronHolds, setSortPreferences} from '../../../util/api/user';
+import {getPatronCheckedOutItems, getPatronHolds, sortHolds, setSortPreferences} from '../../../util/api/user';
 import { getPickupLocations } from '../../../util/loadLibrary';
 import { ManageAllHolds, ManageSelectedHolds, MyHold } from './MyHold';
 
@@ -55,7 +55,8 @@ export const MyHolds = () => {
      useQuery(['holds', user.id, library.baseUrl, language, userHoldReadySortMethod, userHoldPendingSortMethod, 'all'], () => getPatronHolds(userHoldReadySortMethod, userHoldPendingSortMethod, 'all', library.baseUrl, true, language), {
           placeHolderData: holds,
           onSuccess: (data) => {
-               updateHolds(data);
+               const sortedHolds = sortHolds(data, userHoldPendingSortMethod, userHoldReadySortMethod);
+               updateHolds(sortedHolds);
           },
           onSettle: (data) => setLoading(false),
      });
@@ -546,54 +547,3 @@ export const MyHolds = () => {
      );
 };
 
-function sortHolds(holds, pendingSort, readySort) {
-     let sortedHolds = holds;
-     let holdsReady = [];
-     let holdsNotReady = [];
-
-     let pendingSortMethod = pendingSort;
-     if (pendingSort === 'sortTitle') {
-          pendingSortMethod = 'title';
-     } else if (pendingSort === 'libraryAccount') {
-          pendingSortMethod = 'user';
-     }
-
-     let readySortMethod = readySort;
-     if (readySort === 'sortTitle') {
-          readySortMethod = 'title';
-     } else if (readySort === 'libraryAccount') {
-          readySortMethod = 'user';
-     }
-
-     if (holds) {
-          if (holds[1].title === 'Pending') {
-               holdsNotReady = holds[1].data;
-               if (pendingSortMethod === 'position') {
-                    holdsNotReady = _.orderBy(
-                         holdsNotReady,
-                         function (obj) {
-                              return Number(obj.position);
-                         },
-                         ['desc']
-                    );
-               }
-               holdsNotReady = _.orderBy(holdsNotReady, [pendingSortMethod], ['asc']);
-          }
-
-          if (holds[0].title === 'Ready') {
-               holdsReady = holds[0].data;
-               holdsReady = _.orderBy(holdsReady, [readySortMethod], ['asc']);
-          }
-     }
-
-     return [
-          {
-               title: 'Ready',
-               data: holdsReady,
-          },
-          {
-               title: 'Pending',
-               data: holdsNotReady,
-          },
-     ];
-}

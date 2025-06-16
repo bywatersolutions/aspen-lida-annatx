@@ -27,7 +27,7 @@ import { fetchSavedEvents } from '../../util/api/event';
 import { getCatalogStatus } from '../../util/api/library';
 import { getLists } from '../../util/api/list';
 import { getLocations } from '../../util/api/location';
-import { fetchNotificationHistory, fetchReadingHistory, fetchSavedSearches, getLinkedAccounts, getPatronCheckedOutItems, getPatronHolds, getViewerAccounts, reloadProfile, revalidateUser, validateSession } from '../../util/api/user';
+import { fetchNotificationHistory, fetchReadingHistory, fetchSavedSearches, getLinkedAccounts, getPatronCheckedOutItems, sortCheckouts, getPatronHolds, sortHolds, getViewerAccounts, reloadProfile, revalidateUser, validateSession } from '../../util/api/user';
 import { passUserToDiscovery } from '../../util/apiAuth';
 import { GLOBALS } from '../../util/globals';
 import { formatDiscoveryVersion, getPickupLocations, reloadBrowseCategories } from '../../util/loadLibrary';
@@ -60,7 +60,7 @@ export const DrawerContent = () => {
      const [userLongitude, setUserLongitude] = React.useState(0);
      const linkTo = useLinkTo();
      const queryClient = useQueryClient();
-     const { user, accounts, viewers, cards, lists, updateUser, updateLanguage, updatePickupLocations, updateLinkedAccounts, updateLists, updateSavedEvents, updateLibraryCards, updateLinkedViewerAccounts, updateReadingHistory, notificationSettings, expoToken, updateNotificationOnboard, notificationOnboard, notificationHistory, updateNotificationHistory, userHoldPendingSortMethod, userHoldReadySortMethod } = React.useContext(UserContext);
+     const { user, accounts, viewers, cards, lists, updateUser, updateLanguage, updatePickupLocations, updateLinkedAccounts, updateLists, updateSavedEvents, updateLibraryCards, updateLinkedViewerAccounts, updateReadingHistory, notificationSettings, expoToken, updateNotificationOnboard, notificationOnboard, notificationHistory, updateNotificationHistory, userHoldPendingSortMethod, userHoldReadySortMethod, userCheckoutSortMethod } = React.useContext(UserContext);
      const { library, catalogStatus, updateCatalogStatus } = React.useContext(LibrarySystemContext);
      const [notifications, setNotifications] = React.useState([]);
      const [messages, setILSMessages] = React.useState([]);
@@ -144,8 +144,11 @@ export const DrawerContent = () => {
      useQuery(['holds', user.id, library.baseUrl, language], () => getPatronHolds(userHoldReadySortMethod, userHoldPendingSortMethod, 'all', library.baseUrl, false, language), {
           refetchInterval: 60 * 1000 * 15,
           refetchIntervalInBackground: true,
-		 refetchOnWindowFocus: 'always',
-          onSuccess: (data) => updateHolds(data),
+          refetchOnWindowFocus: 'always',
+          onSuccess: (data) => {
+               const sortedHolds = sortHolds(data, userHoldPendingSortMethod, userHoldReadySortMethod);
+               updateHolds(sortedHolds);
+          },
           placeholderData: [],
      });
 
@@ -153,7 +156,10 @@ export const DrawerContent = () => {
           refetchInterval: 60 * 1000 * 15,
           refetchIntervalInBackground: true,
           refetchOnWindowFocus: 'always',
-          onSuccess: (data) => updateCheckouts(data),
+          onSuccess: (data) => {
+               const sortedCheckouts = sortCheckouts(data, userCheckoutSortMethod);
+               updateCheckouts(sortedCheckouts);
+          },
           placeholderData: [],
      });
 

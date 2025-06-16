@@ -12,7 +12,7 @@ import { DisplaySystemMessage } from '../../../components/Notifications';
 import { CheckoutsContext, LanguageContext, LibrarySystemContext, SystemMessagesContext, ThemeContext, UserContext } from '../../../context/initialContext';
 import { getTermFromDictionary, getTranslationsWithValues } from '../../../translations/TranslationService';
 import { confirmRenewAllCheckouts, confirmRenewCheckout, renewAllCheckouts } from '../../../util/accountActions';
-import { getPatronCheckedOutItems, setSortPreferences } from '../../../util/api/user';
+import { getPatronCheckedOutItems, setSortPreferences, sortCheckouts } from '../../../util/api/user';
 import { stripHTML } from '../../../util/apiAuth';
 import { MyCheckout } from './MyCheckout';
 
@@ -66,7 +66,8 @@ export const MyCheckouts = () => {
      useQuery(['checkouts', user.id, library.baseUrl, language], () => getPatronCheckedOutItems('all', library.baseUrl, false, language), {
           placeholderData: checkouts,
           onSuccess: (data) => {
-               updateCheckouts(data);
+               const sortedCheckouts = sortCheckouts(data, userCheckoutSortMethod);
+               updateCheckouts(sortedCheckouts);
           },
           onSettle: (data) => setLoading(false),
      });
@@ -476,32 +477,3 @@ export const MyCheckouts = () => {
           </SafeAreaView>
      );
 };
-
-function sortCheckouts(checkouts, sort) {
-     let sortedCheckouts = [];
-     if (__DEV__) {
-          console.log("Sorting checkouts by " + sort);
-     }
-
-     let sortMethod = sort;
-     let order = 'asc';
-     if (sort === 'sortTitle') {
-          sortMethod = 'title';
-     } else if (sort === 'libraryAccount') {
-          sortMethod = 'user';
-     } else if (sort === 'dueDesc') {
-          sortMethod = 'dueDate';
-          order = 'desc';
-     } else if (sort === 'dueAsc') {
-          sortMethod = 'dueDate';
-     } else if (sort === 'timesRenewed') {
-          sortMethod = 'renewCount';
-          order = 'desc';
-     }
-
-     if (checkouts) {
-          sortedCheckouts = _.orderBy(checkouts, [sortMethod], [order]);
-     }
-
-     return sortedCheckouts;
-}

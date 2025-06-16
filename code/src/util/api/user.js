@@ -334,6 +334,58 @@ export async function getPatronHolds(readySort = 'expire', pendingSort = 'sortTi
      }
 }
 
+export function sortHolds(holds, pendingSort, readySort) {
+     let sortedHolds = holds;
+     let holdsReady = [];
+     let holdsNotReady = [];
+
+     let pendingSortMethod = pendingSort;
+     if (pendingSort === 'sortTitle') {
+          pendingSortMethod = 'title';
+     } else if (pendingSort === 'libraryAccount') {
+          pendingSortMethod = 'user';
+     }
+
+     let readySortMethod = readySort;
+     if (readySort === 'sortTitle') {
+          readySortMethod = 'title';
+     } else if (readySort === 'libraryAccount') {
+          readySortMethod = 'user';
+     }
+
+     if (holds) {
+          if (holds[1].title === 'Pending') {
+               holdsNotReady = holds[1].data;
+               if (pendingSortMethod === 'position') {
+                    holdsNotReady = _.orderBy(
+                         holdsNotReady,
+                         function (obj) {
+                              return Number(obj.position);
+                         },
+                         ['desc']
+                    );
+               }
+               holdsNotReady = _.orderBy(holdsNotReady, [pendingSortMethod], ['asc']);
+          }
+
+          if (holds[0].title === 'Ready') {
+               holdsReady = holds[0].data;
+               holdsReady = _.orderBy(holdsReady, [readySortMethod], ['asc']);
+          }
+     }
+
+     return [
+          {
+               title: 'Ready',
+               data: holdsReady,
+          },
+          {
+               title: 'Pending',
+               data: holdsNotReady,
+          },
+     ];
+}
+
 /**
  * Return a list of current checkouts for a user
  * @param {string} source
@@ -372,6 +424,35 @@ export async function getPatronCheckedOutItems(source = 'all', url, refresh = tr
           console.log(response);
           return [];
      }
+}
+
+export function sortCheckouts(checkouts, sort) {
+     let sortedCheckouts = [];
+     if (__DEV__) {
+          console.log("Sorting checkouts by " + sort);
+     }
+
+     let sortMethod = sort;
+     let order = 'asc';
+     if (sort === 'sortTitle') {
+          sortMethod = 'title';
+     } else if (sort === 'libraryAccount') {
+          sortMethod = 'user';
+     } else if (sort === 'dueDesc') {
+          sortMethod = 'dueDate';
+          order = 'desc';
+     } else if (sort === 'dueAsc') {
+          sortMethod = 'dueDate';
+     } else if (sort === 'timesRenewed') {
+          sortMethod = 'renewCount';
+          order = 'desc';
+     }
+
+     if (checkouts) {
+          sortedCheckouts = _.orderBy(checkouts, [sortMethod], [order]);
+     }
+
+     return sortedCheckouts;
 }
 
 /**
