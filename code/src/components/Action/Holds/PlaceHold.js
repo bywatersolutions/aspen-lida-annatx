@@ -100,6 +100,30 @@ export const PlaceHold = (props) => {
      }
 
 
+     if(user.rememberHoldPickupLocation) {
+          let userPickupLocationId = user.pickupLocationId ?? user.homeLocationId;
+          if (_.isNumber(user.pickupLocationId)) {
+               userPickupLocationId = _.toString(user.pickupLocationId);
+          }
+          const userPickupLocation = _.filter(locations, { locationId: userPickupLocationId });
+          let pickupLocation = '';
+          if (!_.isUndefined(userPickupLocation && !_.isEmpty(userPickupLocation))) {
+               pickupLocation = userPickupLocation[0];
+               if (_.isObject(pickupLocation)) {
+                    pickupLocation = pickupLocation.locationId;
+               }
+          } else {
+               // soft check on valid pickup location, if nothing is returned out of the locations array, its probably invalid
+          }
+
+          if ((volumeInfo.numItemsWithVolumes >= 1 && _.isEmpty(volumeId)) || _.size(accounts) > 0 || promptForHoldNotifications || holdTypeForFormat === 'item' || holdTypeForFormat === 'either' || (shouldPromptAlternateLibraryCard && !userHasAlternateLibraryCard)) {
+               loadHoldPrompt = true;
+          } else {
+               loadHoldPrompt = false;
+          }
+     }
+
+
      if (loadHoldPrompt) {
           return (
                <HoldPrompt

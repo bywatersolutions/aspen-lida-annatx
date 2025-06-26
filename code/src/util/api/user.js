@@ -1,10 +1,10 @@
-import { create } from 'apisauce';
+import {create} from 'apisauce';
 import i18n from 'i18n-js';
 import _ from 'lodash';
-import { popAlert } from '../../components/loadError';
-import { createAuthTokens, ENDPOINT, getHeaders, postData } from '../apiAuth';
-import { GLOBALS } from '../globals';
-import { PATRON } from '../loadPatron';
+import {popAlert} from '../../components/loadError';
+import {createAuthTokens, ENDPOINT, getHeaders, postData} from '../apiAuth';
+import {GLOBALS} from '../globals';
+import {PATRON} from '../loadPatron';
 
 const endpoint = ENDPOINT.user;
 
@@ -246,6 +246,46 @@ export async function updateAlternateLibraryCard(cardNumber = '', cardPassword =
           title: data?.title ?? null,
           message: data?.message ?? null,
      };
+}
+
+/**
+ * Updates hold pickup preferences the user
+ * @param {string} pickupLocationId
+ * @param {string} myLocation1Id
+ * @param {string} myLocation2Id
+ * @param {string} sublocation
+ * @param {int} rememberHoldPickupLocation
+ * @param {string} language
+ * @param {string} url
+ **/
+export async function updateHoldPickupPreferences(pickupLocationId = "", myLocation1Id = "", myLocation2Id = "", sublocation = "", rememberHoldPickupLocation = -1, language = 'en', url) {
+     const params = {
+          ...(pickupLocationId !== -1 && pickupLocationId !== 0 && pickupLocationId !== "" && { pickupLocationId }),
+          ...(myLocation1Id !== -1 && myLocation1Id !== 0 && myLocation1Id !== ""  && { myLocation1Id }),
+          ...(myLocation2Id !== -1 && myLocation2Id !== 0 && myLocation2Id !== "" && { myLocation2Id }),
+          ...(sublocation !== -1 && sublocation !== 0 && sublocation !== "" && { sublocation }),
+          rememberHoldPickupLocation: rememberHoldPickupLocation ?? "",
+          language,
+     };
+
+     const postBody = await postData();
+     const discovery = create({
+          baseURL: url + '/API',
+          timeout: GLOBALS.timeoutAverage,
+          headers: getHeaders(true),
+          auth: createAuthTokens(),
+          params: params,
+     });
+     const response  = await discovery.post('/UserAPI?method=updateHoldPickupPreferences', postBody);
+     if(response.ok) {
+          if(response.data.error) {
+               popAlert("Error", response.data.error, 'error');
+          } else {
+               popAlert(response.data.result.title, response.data.result.message, response.data.result.success === true ? 'success' : 'error');
+          }
+     } else {
+          popAlert("Error", response.data.error, 'error');
+     }
 }
 
 /** *******************************************************************

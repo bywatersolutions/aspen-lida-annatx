@@ -605,5 +605,11 @@
   "more_information": "More Info",
   "manage_language": "Preferred Language",
   "manage_appearance": "Appearance",
-  "processing_checkout_message": "Processing checkout - you can scan your next item"
+  "processing_checkout_message": "Processing checkout - you can scan your next item",
+  "manage_pickup_locations": "Manage Pickup Locations",
+  "preferred_pickup_branch": "Preferred Pickup Branch",
+  "alternate_pickup_location_1": "Alternate Pickup Location 1",
+  "alternate_pickup_location_2": "Alternate Pickup Location 2",
+  "bypass_pickup_location_prompt": "Bypass pickup location prompt when placing holds",
+  "always_use_pickup_location": "Always use this pickup location"
 }

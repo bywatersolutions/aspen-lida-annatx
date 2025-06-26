@@ -21,6 +21,7 @@ import { BackIcon } from '../../themes/theme';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 
 import TitleWithLogo from '../../components/TitleWithLogo'
+import {Settings_PickupLocations} from "../../screens/MyAccount/Settings/PickupLocations";
 
 const MoreStackNavigator = () => {
      const { language } = React.useContext(LanguageContext);
@@ -101,6 +102,16 @@ const MoreStackNavigator = () => {
                               //title: getTermFromDictionary(language, 'manage_browse_categories')
                          }}
                     />
+                   <Stack.Screen
+                       name="MyPreferences_ManagePickupLocations"
+                       component={Settings_PickupLocations}
+                       options={{
+                           header: () => {
+                               const title = getTermFromDictionary(language, 'manage_pickup_locations');
+                               return <TitleWithLogo title={title} />;
+                           },
+                       }}
+                   />
                     <Stack.Screen
                          name="MyPreferences_Language"
                          component={Settings_LanguageScreen}

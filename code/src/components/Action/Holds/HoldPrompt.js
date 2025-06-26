@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import _ from 'lodash';
-import { CloseIcon, Modal, ModalBackdrop, ModalContent, ModalHeader, ModalCloseButton, ModalBody, ModalFooter, FormControl, FormControlLabel, FormControlLabelText, Heading, Select, Button, ButtonGroup, ButtonText, SelectTrigger, SelectInput, SelectIcon, SelectPortal, SelectBackdrop, SelectContent, SelectDragIndicatorWrapper, SelectDragIndicator, SelectItem, Icon, ChevronDownIcon, ButtonSpinner, SelectScrollView, Input, InputField, InputSlot, InputIcon, Text } from '@gluestack-ui/themed';
+import { CloseIcon, Modal, Checkbox, CheckboxIndicator, CheckboxIcon, CheckboxLabel, ModalBackdrop, ModalContent, ModalHeader, ModalCloseButton, ModalBody, ModalFooter, FormControl, FormControlLabel, FormControlLabelText, Heading, Select, Button, ButtonGroup, ButtonText, SelectTrigger, SelectInput, SelectIcon, SelectPortal, SelectBackdrop, SelectContent, SelectDragIndicatorWrapper, SelectDragIndicator, SelectItem, Icon, ChevronDownIcon, ButtonSpinner, SelectScrollView, Input, InputField, InputSlot, InputIcon, Text } from '@gluestack-ui/themed';
 import React from 'react';
 import { EyeOff, Eye } from 'lucide-react-native';
 import { useWindowDimensions } from 'react-native';
@@ -271,6 +271,9 @@ export const HoldPrompt = (props) => {
      const [location, setLocation] = React.useState(pickupLocation);
      const [sublocation, setSublocation] = React.useState(null);
 
+     const rememberHoldPickupLocation = user.rememberHoldPickupLocation ?? 0;
+     const [rememberPickupLocation, setRememberPickupLocation] = React.useState(rememberHoldPickupLocation);
+
      const { width } = useWindowDimensions();
      const [card, setCard] = React.useState(user?.alternateLibraryCard ?? '');
      const [password, setPassword] = React.useState(user?.alternateLibraryCardPassword ?? '');
@@ -495,8 +498,26 @@ export const HoldPrompt = (props) => {
                                              </SelectPortal>
                                         </Select>
                                    </FormControl>
+
                               ) : null}
                               <SelectNewHoldSublocation sublocations={PATRON.sublocations} location={location} activeSublocation={sublocation} setActiveSublocation={setSublocation} language={language} textColor={textColor} theme={theme} />
+                              {_.isArray(locations) && _.size(locations) > 1 && !isEContent && (library.allowRememberPickupLocation || __DEV__) ? (
+                                  <FormControl mb="$3">
+                                       <Checkbox
+                                           size="sm"
+                                           value={rememberPickupLocation}
+                                           name="rememberHoldPickupLocation"
+                                           defaultIsChecked={rememberPickupLocation}
+                                           onChange={(value) => {
+                                                setRememberPickupLocation(value);
+                                           }}>
+                                            <CheckboxIndicator mr="$2">
+                                                 <CheckboxIcon as={CheckIcon} />
+                                            </CheckboxIndicator>
+                                            <CheckboxLabel color={textColor}>{getTermFromDictionary(language, 'always_use_pickup_location')}</CheckboxLabel>
+                                       </Checkbox>
+                                  </FormControl>
+                              ) : null}
                               {_.isArray(accounts) && _.size(accounts) > 0 ? (
                                    <FormControl>
                                         <FormControlLabel>
@@ -557,7 +578,7 @@ export const HoldPrompt = (props) => {
                                              isDisabled={loading}
                                              onPress={async () => {
                                                   setLoading(true);
-                                                  await completeAction(id, action, activeAccount, '', '', location, sublocation, library.baseUrl, volumeId, holdType, holdNotificationPreferences, item).then(async (result) => {
+                                                  await completeAction(id, action, activeAccount, '', '', location, sublocation, rememberPickupLocation, library.baseUrl, volumeId, holdType, holdNotificationPreferences, item).then(async (result) => {
                                                        setResponse(result);
                                                        logDebugMessage("Completed Action Hold Prompt Alternate Library Card");
 
