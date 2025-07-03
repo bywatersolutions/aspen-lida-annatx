@@ -59,6 +59,8 @@ fs.readFile('../code/eas.json', 'utf8', function (err, data) {
 
 let versionAsInt = build['build'];
 versionAsInt = parseInt(versionAsInt, 10);
+let versionWithStage = version.version + ' ' + version.stage;
+versionWithStage = versionWithStage.trim();
 
 const app_config = {
      name: app['name'],
@@ -67,7 +69,7 @@ const app_config = {
      owner: owner['expoProjectOwner'],
      privacy: 'public',
      platforms: ['ios', 'android'],
-     version: version['version'],
+     version: versionWithStage,
      sdkVersion: '51.0.0',
      orientation: 'default',
      icon: app['discoveryUrl'] + 'API/SystemAPI?method=getLogoFile&themeId=' + app['themeId'] + '&type=appIcon&slug=' + app['slug'],

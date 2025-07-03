@@ -1,4 +1,5 @@
 {
-  "version": "25.07.00",
-  "patch": "0"
+     "version": "25.07.00",
+     "stage": "alpha",
+     "patch": "0"
 }
