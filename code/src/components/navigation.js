@@ -31,7 +31,7 @@ import LibraryCardScanner from './LibraryCardScanner';
 import { logDebugMessage, logInfoMessage, logWarnMessage, logErrorMessage } from '../util/logging.js';
 
 const prefix = Linking.createURL('/');
-console.log(prefix);
+logDebugMessage("Linking prefix is " + prefix);
 
 enableScreens();
 
@@ -41,6 +41,7 @@ let routingInstrumentation = null;
 try {
      routingInstrumentation = new Sentry.ReactNavigationInstrumentation();
 }catch (e) {
+     routingInstrumentation = null;
      logWarnMessage("Could not create sentry routing instrumentation " + e);
 }
 
@@ -53,9 +54,9 @@ const iOSDist = Constants.expoConfig.ios.buildNumber;
 const androidDist = Constants.expoConfig.android.versionCode;
 const version = Constants.expoConfig.version;
 
-console.log(iOSRelease);
-console.log(iOSDist);
-console.log(version);
+logDebugMessage("iOS Release: " + iOSRelease);
+logDebugMessage("iOS Dist: " + iOSDist);
+logDebugMessage("Version: " + version);
 
 let releaseCode = Platform.OS === 'android' ? androidRelease + '@' + version + '+' + androidDist : iOSRelease + '@' + version + '+' + iOSDist;
 releaseCode = releaseCode.toString();
@@ -64,6 +65,11 @@ let distribution = Platform.OS === 'android' ? androidDist : iOSDist;
 distribution = distribution.toString();
 
 try {
+     logDebugMessage("Initializing sentry");
+     let integrations = [];
+     if (routingInstrumentation != null) {
+          integrations.push(routingInstrumentation);
+     }
      Sentry.init({
           dsn: Constants.expoConfig.extra.sentryDSN,
           enableAutoSessionTracking: true,
@@ -74,11 +80,8 @@ try {
           environment: Updates.channel ?? Updates.releaseChannel,
           release: releaseCode,
           dist: distribution,
-          integrations: [
-               new Sentry.ReactNativeTracing({
-                    routingInstrumentation,
-               }),
-          ],
+          autoInject: false,
+          integrations: integrations,
      });
 
      Sentry.setTag('patch', GLOBALS.appPatch);
@@ -146,15 +149,16 @@ export function App() {
                     try {
                          const update = await Updates.checkForUpdateAsync();
                          if (update.isAvailable) {
-                              console.log('Found an update...');
+                              logDebugMessage('Found an update...');
                               try {
-                                   console.log('Downloading update...');
+                                   logDebugMessage('Downloading update...');
                                    await Updates.fetchUpdateAsync().then(async (r) => {
-                                        console.log('Updating app...');
+                                        logInfoMessage('Updating app...');
                                         await Updates.reloadAsync();
                                    });
                               } catch (e) {
-                                   console.log(e);
+                                   logErrorMessage("Error updating app");
+                                   logErrorMessage(e);
                               }
                          }
                     } catch (e) {
@@ -169,15 +173,7 @@ export function App() {
 
      React.useEffect(() => {
           const bootstrapAsync = async () => {
-//               console.log('Checking updates...');
-//               if (Updates.manifest && Updates.channel !== 'development' && !__DEV__) {
-//                    await updateAspenLiDABuild(Updates.updateId, Updates.channel, Updates.createdAt);
-//                    console.log('Update information sent to Greenhouse.');
-//               } else {
-//                    console.log('No update to send to Greenhouse.');
-//               }
-
-               console.log('Checking existing session...');
+               logDebugMessage('Checking existing session...');
                let userToken;
                let libraryUrl;
                let userKey;
@@ -188,7 +184,8 @@ export function App() {
                     userKey = await SecureStore.getItemAsync('userKey');
                } catch (e) {
                     // Restoring token failed
-                    console.log(e);
+                    logErrorMessage("Error restoring token");
+                    logErrorMessage(e);
                     dispatch({ type: 'SIGN_OUT' });
                }
 
@@ -201,15 +198,15 @@ export function App() {
                }
 
                if (userToken) {
-                    console.log('Session found');
+                    logDebugMessage('Session found');
                     if (libraryUrl) {
-                         console.log('Trying to connect to: ', libraryUrl);
+                         logDebugMessage('Trying to connect to: ', libraryUrl);
                          await checkCachedUrl(libraryUrl).then(async (result) => {
                               if (result) {
                                    LIBRARY.url = libraryUrl;
-                                   console.log('Connection successful. Continuing...');
+                                   logDebugMessage('Connection successful. Continuing...');
                               } else {
-                                   console.log('Connection failed, logging out.');
+                                   logWarnMessage('Connection failed, logging out.');
                                    userToken = null;
                                    await RemoveData().then((res) => {
                                         dispatch({ type: 'SIGN_OUT' });
@@ -217,13 +214,13 @@ export function App() {
                               }
                          });
                     } else {
-                         console.log('No cached library url, logging out.');
+                         logWarnMessage('No cached library url, logging out.');
                          await RemoveData().then((res) => {
                               dispatch({ type: 'SIGN_OUT' });
                          });
                     }
                } else {
-                    console.log('No session found. Starting new.');
+                    logDebugMessage('No session found. Starting new.');
                }
                dispatch({
                     type: 'RESTORE_TOKEN',
@@ -252,7 +249,7 @@ export function App() {
                          updateUser([]);
                          dispatch({ type: 'SIGN_OUT' });
                     });
-                    console.log('Session ended.');
+                    logDebugMessage('Session ended.');
                },
           }),
           []
