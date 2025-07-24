@@ -245,7 +245,7 @@ export const DrawerContent = () => {
           },
      });
 
-     useQuery(['reading_history', user.id, library.baseUrl, 1, 'checkedOut'], () => fetchReadingHistory(1, 25, 'checkedOut', '', library.baseUrl, language), {
+     useQuery(['reading_history', user.id, library.baseUrl, 1, 'checkedOut'], () => fetchReadingHistory(1, 20, 'checkedOut', '', library.baseUrl, language), {
           refetchInterval: 60 * 1000 * 30,
           refetchIntervalInBackground: true,
           placeholderData: [],

@@ -932,7 +932,8 @@ export async function saveLanguage(code, url, language = 'en') {
  * @param {string} url
  * @param {string} language
  **/
-export async function fetchReadingHistory(page = 1, pageSize = 25, sort = 'checkedOut', filter = '', url, language = 'en') {
+export async function fetchReadingHistory(page = 1, pageSize = 20, sort = 'checkedOut', filter = '', url, language = 'en') {
+     logDebugMessage("Fetching reading history page: " + page + " size: " + pageSize + " sort: " + sort + " filter: " + filter);
      const postBody = await postData();
      const api = create({
           baseURL: url + '/API',
