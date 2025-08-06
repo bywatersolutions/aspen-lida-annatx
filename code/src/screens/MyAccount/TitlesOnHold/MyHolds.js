@@ -267,6 +267,29 @@ export const MyHolds = () => {
                showSelectOptions = true;
           }
 
+          const pendingSortLabel = () => {
+               switch (userHoldPendingSortMethod) {
+                    case "author":
+                         return sortBy.author;
+                    case "format":
+                         return sortBy.format;
+                    case "status":
+                         return sortBy.status;
+                    case "placed":
+                         return sortBy.date_placed;
+                    case "position":
+                         return sortBy.position;
+                    case "location":
+                         return sortBy.pickup_location;
+                    case "libraryAccount":
+                         return sortBy.library_account;
+                    case "sortTitle":
+                         return sortBy.title;
+                    default:
+                         return getTermFromDictionary(language, 'select_sort_method');
+               }
+          };
+
           let pendingSortLength = 8 * sortBy.title.length + 80;
           if (userHoldPendingSortMethod === 'author') {
                pendingSortLength = 8 * sortBy.author.length + 80;
@@ -300,7 +323,7 @@ export const MyHolds = () => {
                                                   onValueChange={(itemValue) => togglePendingSort(itemValue)}>
                                                   <SelectTrigger variant="outline" size="sm" borderWidth={colorMode === 'light' ? '$none' : '$1'}
                                                                  borderColor={colorMode === 'light' ? '$none' : theme['colors']['gray']['400']}>
-                                                       <SelectInput color={textColor} placeholder="Select option" />
+                                                       <SelectInput color={textColor} value={pendingSortLabel()} />
                                                        <SelectIcon mr="$3">
                                                             <Icon color={textColor} as={ChevronDownIcon} />
                                                        </SelectIcon>
@@ -346,7 +369,7 @@ export const MyHolds = () => {
                                              onValueChange={(itemValue) => togglePendingSort(itemValue)}>
                                              <SelectTrigger variant="outline" size="sm" borderWidth={colorMode === 'light' ? '$none' : '$1'}
                                                             borderColor={colorMode === 'light' ? '$none' : theme['colors']['gray']['400']}>
-                                                  <SelectInput color={textColor} placeholder="Select option" />
+                                                  <SelectInput color={textColor} value={pendingSortLabel()} />
                                                   <SelectIcon mr="$3">
                                                        <Icon color={textColor} as={ChevronDownIcon} />
                                                   </SelectIcon>
@@ -375,6 +398,31 @@ export const MyHolds = () => {
                     </Box>
                );
           }
+
+          const readySortLabel = () => {
+               switch (userHoldReadySortMethod) {
+                    case "author":
+                         return sortBy.author;
+                    case "format":
+                         return sortBy.format;
+                    case "status":
+                         return sortBy.status;
+                    case "placed":
+                         return sortBy.date_placed;
+                    case "position":
+                         return sortBy.position;
+                    case "location":
+                         return sortBy.pickup_location;
+                    case "libraryAccount":
+                         return sortBy.library_account;
+                    case "sortTitle":
+                         return sortBy.title;
+                    case "expire":
+                         return sortBy.expiration;
+                    default:
+                         return getTermFromDictionary(language, 'select_sort_method');
+               }
+          };
 
           let readySortLength = 8 * sortBy.expiration.length + 80;
           if (userHoldReadySortMethod === 'author') {
@@ -411,7 +459,7 @@ export const MyHolds = () => {
                                              onValueChange={(itemValue) => toggleReadySort(itemValue)}>
                                              <SelectTrigger variant="outline" size="sm" borderWidth={colorMode === 'light' ? '$none' : '$1'}
                                                             borderColor={colorMode === 'light' ? '$none' : theme['colors']['gray']['400']}>
-                                                  <SelectInput color={textColor} placeholder={getTermFromDictionary(language, 'select_sort_method')} />
+                                                  <SelectInput color={textColor} value={readySortLabel()} />
                                                   <SelectIcon mr="$3">
                                                        <Icon color={textColor} as={ChevronDownIcon} />
                                                   </SelectIcon>
@@ -439,6 +487,23 @@ export const MyHolds = () => {
                );
           }
 
+          const holdSourceLabel = () => {
+               switch (holdSource) {
+                   case "ils":
+                         return getTermFromDictionary(language, 'filter_by_ils') + " (" + (user.numHoldsRequestedIls ?? 0) + ")";
+                    case "overdrive":
+                         return filterByLibby + " (" + (user.numHoldsOverDrive ?? 0) + ")";
+                    case "cloud_library":
+                         return getTermFromDictionary(language, 'filter_by_cloud_library') + " (" + (user.numHolds_cloudLibrary ?? 0) + ")";
+                    case "axis360":
+                         return getTermFromDictionary(language, 'filter_by_boundless') + " (" + (user.numHolds_axis360 ?? 0) + ")";
+                    case "palace_project":
+                         return getTermFromDictionary(language, 'filter_by_palace_project') + " (" + (user.numHolds_PalaceProject ?? 0) + ")";
+                    default:
+                         return getTermFromDictionary(language, 'filter_by_all') + " (" + (user.numHolds ?? 0) + ")";
+               }
+          };
+
           return (
                <Box
                     p="$2"
@@ -463,11 +528,12 @@ export const MyHolds = () => {
                                         name="holdSource"
                                         selectedValue={holdSource}
                                         defaultValue={holdSource}
+                                        initialLabel="Test"
                                         accessibilityLabel="Filter By Source"
                                         onValueChange={(itemValue) => toggleHoldSource(itemValue)}>
                                         <SelectTrigger variant="outline" size="sm" borderWidth={colorMode === 'light' ? '$none' : '$1'}
                                                        borderColor={colorMode === 'light' ? '$none' : theme['colors']['gray']['400']}>
-                                             <SelectInput color={textColor}  placeholder="Filter By Source" />
+                                             <SelectInput color={textColor} value={holdSourceLabel()} />
                                              <SelectIcon mr="$3">
                                                   <Icon color={textColor} as={ChevronDownIcon} />
                                              </SelectIcon>
