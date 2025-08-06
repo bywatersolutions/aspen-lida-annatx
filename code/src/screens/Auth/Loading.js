@@ -53,7 +53,7 @@ export const LoadingScreen = () => {
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
      const { theme, updateTheme, updateColorMode } = React.useContext(ThemeContext);
 
-     const [loadingText, setLoadingText] = React.useState('');
+     const [loadingText, setLoadingText] = React.useState('Loading...');
      const [loadingTheme, setLoadingTheme] = React.useState(true);
 
      const numSteps = 14;
@@ -101,10 +101,8 @@ export const LoadingScreen = () => {
           enabled: !!LIBRARY.url && !loadingTheme,
           onSuccess: (data) => {
                updateCatalogStatus(data);
-               if (isUndefined(LIBRARY.appSettings.loadingMessageType) || LIBRARY.appSettings.loadingMessageType == 0) {
-                    setLoadingText(getTermFromDictionary(language ?? 'en', 'loading_1'));
-               }else if (LIBRARY.appSettings.loadingMessageType == 1) {
-                    setLoadingText('Loading Translations');
+               if (LIBRARY.appSettings.loadingMessageType == 1) {
+                    setLoadingText('Loading catalog...');
                }else if (LIBRARY.appSettings.loadingMessageType == 2) {
                     setLoadingText(LIBRARY.appSettings.loadingMessage);
                }
@@ -124,7 +122,9 @@ export const LoadingScreen = () => {
           onSuccess: (data) => {
                setProgress(progress + (100 / numSteps));
                updateDictionary(translationsLibrary);
-               if (LIBRARY.appSettings.loadingMessageType == 1) {
+               if (_.isUndefined(LIBRARY.appSettings.loadingMessageType) || LIBRARY.appSettings.loadingMessageType == 0) {
+                    setLoadingText(getTermFromDictionary(language ?? 'en', 'loading_1'));
+               }else if (LIBRARY.appSettings.loadingMessageType == 1) {
                     setLoadingText('Loading Languages');
                }
           },
