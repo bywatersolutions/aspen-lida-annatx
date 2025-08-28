@@ -320,21 +320,11 @@ const FilterModal = () => {
      return (
           <FilterModalStack.Navigator
                id="SearchFilters"
-               screenOptions={({ navigation, route }) => ({
-                    headerShown: false,
-                    animationTypeForReplace: 'push',
-                    gestureEnabled: false,
-                    headerLeft: () => {
-                         if (route.name !== 'Filters') {
-                              return (
-                                   <Pressable onPress={() => navigation.goBack()} mr="$3" hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
-                                        <Icon as={MaterialIcons} name="chevron-left" size="md" />
-                                   </Pressable>
-                              );
-                         } else {
-                              return null;
-                         }
-                    },
+               screenOptions={({ navigation }) => ({
+                    headerShown: true,
+                    animation: 'slide_from_right',
+                    headerBackVisible: true,
+                    headerBackTitleVisible: false,
                     headerRight: () => (
                          <Pressable onPress={() => navigation.getParent().pop()} mr="$3" hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
                               <Icon as={MaterialIcons} name="close" size="md" />
@@ -346,8 +336,7 @@ const FilterModal = () => {
                     component={FiltersScreen}
                     options={{
                          title: getTermFromDictionary(language, 'filters'),
-                         headerShown: true,
-                         presentation: 'card',
+                         headerBackVisible: false,
                     }}
                />
                <FilterModalStack.Screen
@@ -355,8 +344,6 @@ const FilterModal = () => {
                     component={Facet}
                     options={({ route }) => ({
                          title: route.params.title,
-                         headerShown: true,
-                         presentation: 'card',
                     })}
                />
                <FilterModalStack.Screen
@@ -364,8 +351,6 @@ const FilterModal = () => {
                     component={SearchSourceScreen}
                     options={{
                          title: getTermFromDictionary(language, 'search_in'),
-                         headerShown: true,
-                         presentation: 'card',
                     }}
                />
                <FilterModalStack.Screen
@@ -373,8 +358,6 @@ const FilterModal = () => {
                     component={SearchIndexScreen}
                     options={{
                          title: getTermFromDictionary(language, 'search_by'),
-                         headerShown: true,
-                         presentation: 'card',
                     }}
                />
           </FilterModalStack.Navigator>
