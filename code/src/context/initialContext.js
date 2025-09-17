@@ -57,6 +57,10 @@ export const UserContext = React.createContext({
      updateUserHoldReadySortMethod: 'expire',
      updateUserHoldPendingSortMethod: () => {},
      updateUserHoldReadySortMethod: () => {},
+     preferredPickupLocationIsValid: true,
+     updatePreferredPickupLocationIsValid: () => {},
+     preferredPickupLocationWarning: "",
+     updatePreferredPickupLocationWarning: () => {},
 });
 export const LibrarySystemContext = React.createContext({
      updateLibrary: () => {},
@@ -388,6 +392,8 @@ export const UserProvider = ({ children }) => {
      const [userCheckoutSortMethod, setUserCheckoutSortMethod] = useState('dueAsc');
      const [userHoldPendingSortMethod, setUserHoldPendingSortMethod] = useState('sortTitle');
      const [userHoldReadySortMethod, setUserHoldReadySortMethod] = useState('expire');
+     const [preferredPickupLocationIsValid, setPreferredPickupLocationIsValid] = useState(true);
+     const [preferredPickupLocationWarning, setPreferredPickupLocationWarning] = useState("");
 
      const updateUser = (data) => {
           if (user !== data) {
@@ -473,6 +479,16 @@ export const UserProvider = ({ children }) => {
      const updateLibraryCards = (data) => {
           setCards(data);
           logDebugMessage('updated library cards in UserContext');
+     };
+
+     const updatePreferredPickupLocationIsValid = (data) => {
+          setPreferredPickupLocationIsValid(data);
+          logDebugMessage('updated preferredPickupLocationIsValid in UserContext');
+     };
+
+     const updatePreferredPickupLocationWarning = (data) => {
+          setPreferredPickupLocationWarning(data);
+          logDebugMessage('updated preferredPickupLocationWarning to ' + data + ' in UserContext');
      };
 
      const updateNotificationSettings = async (data, language, userOnboardStatus) => {
@@ -684,6 +700,10 @@ export const UserProvider = ({ children }) => {
                     userHoldReadySortMethod,
                     updateUserHoldPendingSortMethod,
                     updateUserHoldReadySortMethod,
+                    updatePreferredPickupLocationIsValid,
+                    preferredPickupLocationIsValid,
+                    updatePreferredPickupLocationWarning,
+                    preferredPickupLocationWarning
                }}>
                {children}
           </UserContext.Provider>

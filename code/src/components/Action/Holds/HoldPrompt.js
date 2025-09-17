@@ -62,7 +62,10 @@ export const HoldPrompt = (props) => {
      const [showModal, setShowModal] = React.useState(false);
      const [showAddAlternateLibraryCardModal, setShowAddAlternateLibraryCardModal] = React.useState(false);
 
-     const { user, updateUser, accounts, locations } = React.useContext(UserContext);
+     const { user, updateUser, accounts, locations, preferredPickupLocationIsValid, preferredPickupLocationWarning} = React.useContext(UserContext);
+
+     logDebugMessage("In Hold Prompt, preferredPickupLocationIsValid = " + preferredPickupLocationIsValid);
+     logDebugMessage("In Hold Prompt, preferredPickupLocationWarning = " + preferredPickupLocationWarning);
      const { library } = React.useContext(LibrarySystemContext);
      const { updateHolds } = React.useContext(HoldsContext);
      const { theme, colorMode, textColor } = React.useContext(ThemeContext);
@@ -256,7 +259,7 @@ export const HoldPrompt = (props) => {
      }
 
      let pickupLocation = '';
-     if (_.size(locations) > 1) {
+     if (_.size(locations) > 1 || !preferredPickupLocationIsValid) {
           const userPickupLocation = _.filter(locations, { locationId: userPickupLocationId });
           if (!_.isUndefined(userPickupLocation && !_.isEmpty(userPickupLocation))) {
                pickupLocation = userPickupLocation[0];
@@ -445,6 +448,7 @@ export const HoldPrompt = (props) => {
                               {alreadyOnHold ? (
                                    <Text color={textColor}>{getTermFromDictionary(language, 'already_on_hold')}</Text>
                               ) : null}
+                              {!preferredPickupLocationIsValid ? (<Text color={textColor}>{preferredPickupLocationWarning}</Text>) : null}
                               {promptForHoldNotifications ? (
                                    <HoldNotificationPreferences
                                         user={user}
@@ -469,7 +473,7 @@ export const HoldPrompt = (props) => {
                               ) : null}
                               {!isFetching && _.isEmpty(volumeId) && (typeOfHold === 'either' || typeOfHold === 'item') ? <SelectItemHold theme={theme} colorMode={colorMode} id={id} item={item} setItem={setItem} language={language} data={data} holdType={holdType} setHoldType={setHoldType} holdTypeForFormat={holdTypeForFormat} url={library.baseUrl} showModal={showModal} textColor={textColor} /> : null}
                               {promptForHoldType || (holdType === 'volume' && _.isEmpty(volumeId)) ? <SelectVolume theme={theme} id={id} language={language} volume={volume} setVolume={setVolume} promptForHoldType={promptForHoldType} holdType={holdType} setHoldType={setHoldType} showModal={showModal} url={library.baseUrl} textColor={textColor} colorMode={colorMode}  /> : null}
-                              {(_.isArray(locations) && _.size(locations) > 1 && !isEContent && !user.rememberHoldPickupLocation) || (_.isArray(locations) && _.size(locations) > 1 && !isEContent && _.size(accounts) > 0) ? (
+                              {(_.isArray(locations) && (_.size(locations) > 1 || !preferredPickupLocationIsValid) && !isEContent && !user.rememberHoldPickupLocation) || (_.isArray(locations) && _.size(locations) > 1 && !isEContent && _.size(accounts) > 0) ? (
                                    <FormControl mt="$1">
                                         <FormControlLabel>
                                              <FormControlLabelText size="sm" color={textColor}>

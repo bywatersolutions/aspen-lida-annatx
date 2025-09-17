@@ -433,9 +433,9 @@ const getAddToCalendar = (start, end, location, event) => {
 
      return (
           <>
-               <Pressable py="3" onPress={() => handleAddToCalendar()}>
-                    <HStack space="1" alignItems="center" justifyContent="space-between">
-                         <HStack space="3" alignItems="center">
+               <Pressable py="$3" onPress={() => handleAddToCalendar()}>
+                    <HStack space="sm" alignItems="center" justifyContent="space-between">
+                         <HStack space="sm" alignItems="center">
                               <Icon as={MaterialIcons} name="calendar-today" size="md" color={textColor}/>
                               <VStack>
                                    <Text bold color={textColor}>{displayDay}</Text>
@@ -444,7 +444,7 @@ const getAddToCalendar = (start, end, location, event) => {
                                    </Text>
                               </VStack>
                          </HStack>
-                         <Icon as={MaterialIcons} name="chevron-right" size="xl" />
+                         <Icon as={MaterialIcons} name="chevron-right" size="lg" color={textColor}/>
                     </HStack>
                </Pressable>
                <Modal isOpen={showModal} onClose={() => setShowModal(false)} closeOnOverlayClick={false} size="md">

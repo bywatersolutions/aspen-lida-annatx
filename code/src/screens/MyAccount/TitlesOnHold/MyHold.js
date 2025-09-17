@@ -56,8 +56,8 @@ export const MyHold = (props) => {
           }
           const update = async () => {
                await getPickupLocations(library.baseUrl, null, hold.id).then((result) => {
-                    if (pickupLocations !== result) {
-                         setPickupLocations(result);
+                    if (pickupLocations !== result.locations) {
+                         setPickupLocations(result.locations);
                     }
                });
           };

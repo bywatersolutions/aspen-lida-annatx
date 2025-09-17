@@ -178,7 +178,6 @@ export async function getLocationAppSettings(url, timeout, slug) {
  * Fetch valid pickup locations for the patron
  **/
 export async function getPickupLocations(url = null, groupedWorkId = null, recordId = null) {
-     //console.log("Getting pickup locations");
      let baseUrl = url ?? LIBRARY.url;
      const postBody = await postData();
      const api = create({
@@ -195,6 +194,8 @@ export async function getPickupLocations(url = null, groupedWorkId = null, recor
 
      if (response.ok) {
           let locations = [];
+          const result = response.data.result;
+          //update pickup locations to the format we need for select lists
           const data = response.data.result.pickupLocations;
           if (_.isObject(data) || _.isArray(data)) {
                locations = data.map(({ displayName, code, locationId }) => ({
@@ -212,7 +213,8 @@ export async function getPickupLocations(url = null, groupedWorkId = null, recor
           }
 
           PATRON.pickupLocations = locations;
-          return locations;
+          result.locations = locations;
+          return result;
      } else {
           console.log(response);
      }

@@ -122,8 +122,8 @@ export const MyHolds = () => {
           React.useCallback(() => {
                const update = async () => {
                     await getPickupLocations(library.baseUrl).then((result) => {
-                         if (pickupLocations !== result) {
-                              setPickupLocations(result);
+                         if (pickupLocations !== result.locations) {
+                              setPickupLocations(result.locations);
                          }
                     });
 

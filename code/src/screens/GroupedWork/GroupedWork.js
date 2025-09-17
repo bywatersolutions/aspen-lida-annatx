@@ -22,13 +22,15 @@ import { getPickupLocations, getPickupSublocations } from '../../util/loadLibrar
 import AddToList from '../Search/AddToList';
 import Variations from './Variations';
 
+import { logDebugMessage, logInfoMessage, logWarnMessage, logErrorMessage } from '../../util/logging.js';
+
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
 export const GroupedWorkScreen = () => {
      const route = useRoute();
      const queryClient = useQueryClient();
      const id = route.params.id;
-     const { user, locations, sublocations, accounts, cards, updatePickupLocations, updateSublocations, updateLinkedAccounts, updateLibraryCards } = React.useContext(UserContext);
+     const { user, locations, sublocations, accounts, cards, updatePickupLocations, updateSublocations, updateLinkedAccounts, updateLibraryCards, updatePreferredPickupLocationIsValid, preferredPickupLocationIsValid, updatePreferredPickupLocationWarning, preferredPickupLocationWarning } = React.useContext(UserContext);
      const { language, updateGroupedWork, updateFormat } = React.useContext(GroupedWorkContext);
      const { library } = React.useContext(LibrarySystemContext);
      const { language: userLanguage } = React.useContext(LanguageContext);
@@ -53,8 +55,22 @@ export const GroupedWorkScreen = () => {
                               }
                          });
                          await getPickupLocations(library.baseUrl, id).then((result) => {
-                              if (locations !== result) {
-                                   updatePickupLocations(result);
+                              logDebugMessage('Updating pickup locations after getPickupLocations call');
+                              logDebugMessage(result);
+                              if (locations !== result.locations) {
+                                   updatePickupLocations(result.locations);
+                              }
+                              logDebugMessage("Preferred pickup location is valid? " + result.preferredPickupLocationIsValid);
+                              if (preferredPickupLocationIsValid !== result.preferredPickupLocationIsValid) {
+                                   updatePreferredPickupLocationIsValid(result.preferredPickupLocationIsValid);
+                              }
+                              if (preferredPickupLocationWarning !== result.preferredPickupLocationWarning) {
+                                   logDebugMessage("Preferred pickup location warning is " + result.preferredPickupLocationWarning);
+                                   updatePreferredPickupLocationWarning(result.preferredPickupLocationWarning);
+                              }else{
+                                   logDebugMessage("Preferred pickup location warning did not change");
+                                   logDebugMessage("  preferredPickupLocationWarning = " + preferredPickupLocationWarning);
+                                   logDebugMessage("  result.preferredPickupLocationWarning = " + result.preferredPickupLocationWarning);
                               }
                          });
                          await getPickupSublocations(library.baseUrl).then((result) => {

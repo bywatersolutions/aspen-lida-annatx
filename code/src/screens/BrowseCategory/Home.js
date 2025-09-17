@@ -183,9 +183,16 @@ export const DiscoverHomeScreen = () => {
                if (_.includes(id, 'assabet_')) {
                     type = 'assabet_event';
                }
+               if (_.includes(id, 'aspenEvent_')) {
+                    type = 'aspenEvent_event';
+               }
           }
 
-          const imageUrl = library.baseUrl + '/bookcover.php?id=' + id + '&size=medium&type=' + type.toLowerCase();
+          if(type !== 'aspenEvent_event') {
+               type = type.toLowerCase();
+          }
+
+          const imageUrl = library.baseUrl + '/bookcover.php?id=' + id + '&size=medium&type=' + type;
 
           let isNew = false;
           if (typeof item.isNew !== 'undefined') {
@@ -257,6 +264,8 @@ export const DiscoverHomeScreen = () => {
                     eventSource = 'springshare';
                } else if (type === 'assabet_event') {
                     eventSource = 'assabet';
+               } else if (type === 'aspenEvent_event') {
+                    eventSource = 'aspenEvents';
                }
 
                navigateStack('BrowseTab', 'EventScreen', {
