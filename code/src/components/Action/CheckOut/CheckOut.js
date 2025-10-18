@@ -8,11 +8,12 @@ import RenderHtml from 'react-native-render-html';
 
 // custom components and helper files
 import { LanguageContext, LibraryBranchContext, LibrarySystemContext, ThemeContext, UserContext } from '../../../context/initialContext';
-import { decodeHTML } from '../../../util/apiAuth';
+import { decodeHTML, getErrorMessage } from '../../../util/apiAuth';
 import { completeAction } from '../../../util/recordActions';
 import { refreshProfile, updateAlternateLibraryCard } from '../../../util/api/user';
 import { HoldPrompt } from '../Holds/HoldPrompt';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
+import { logDebugMessage, logWarnMessage } from '../../../util/logging';
 
 export const CheckOut = (props) => {
      const queryClient = useQueryClient();
@@ -105,8 +106,14 @@ export const CheckOut = (props) => {
 
           const updateCard = async () => {
                await updateAlternateLibraryCard(card, password, false, library.baseUrl, language);
-               await refreshProfile(library.baseUrl).then(async (result) => {
-                    updateUser(result);
+               await refreshProfile(library.baseUrl).then((data) => {
+                    if(data.ok) {
+                         updateUser(data.data.result.profile);
+                    } else {
+                         logWarnMessage('Could not refresh profile after placing hold from volume selection.');
+                         logDebugMessage(data);
+                         getErrorMessage(data.code ?? 0, data.problem);
+                    }
                });
                setCard('');
                setPassword('');

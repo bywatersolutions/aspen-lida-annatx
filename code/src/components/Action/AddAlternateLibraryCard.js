@@ -4,11 +4,12 @@ import { CloseIcon, Modal, ModalBackdrop, ModalContent, ModalHeader, ModalCloseB
 import { LanguageContext, LibrarySystemContext, ThemeContext, UserContext } from '../../context/initialContext';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { refreshProfile, updateAlternateLibraryCard } from '../../util/api/user';
-import { decodeHTML } from '../../util/apiAuth';
+import { decodeHTML, getErrorMessage } from '../../util/apiAuth';
 import { completeAction } from '../../util/recordActions';
 import { useWindowDimensions } from 'react-native';
 import RenderHtml from 'react-native-render-html';
 import { EyeOff, Eye } from 'lucide-react-native';
+import { logDebugMessage, logWarnMessage } from '../../util/logging';
 
 export const AddAlternateLibraryCard = (props) => {
      const {
@@ -101,8 +102,14 @@ export const AddAlternateLibraryCard = (props) => {
 
      const updateCard = async () => {
           await updateAlternateLibraryCard(card, password, false, library.baseUrl, language);
-          await refreshProfile(library.baseUrl).then(async (result) => {
-               updateUser(result);
+          await refreshProfile(library.baseUrl).then((data) => {
+               if(data.ok) {
+                    updateUser(data.data.result.profile);
+               } else {
+                    logWarnMessage('Could not refresh profile after placing hold from volume selection.');
+                    logDebugMessage(data);
+                    getErrorMessage(data.code ?? 0, data.problem);
+               }
           });
      };
 
@@ -164,9 +171,7 @@ export const AddAlternateLibraryCard = (props) => {
                                         setLoading(true);
                                         await completeAction(id, action, activeAccount, '', '', location, null, null, library.baseUrl, volume, holdType, holdNotificationPreferences, item).then(async (result) => {
                                              setResponse(result);
-                                             if (__DEV__) {
-                                                  console.log("Completed Action after add alternate library card");
-                                             }
+                                             logDebugMessage("Completed Action after add alternate library card");
                                              if (result) {
                                                   if (result.success === true || result.success === 'true') {
                                                        queryClient.invalidateQueries({ queryKey: ['holds', user.id, library.baseUrl, language] });
