@@ -43,6 +43,8 @@ const DisplayBrowseCategory = ({category}) => {
      const hasMore = records.length > maxItems;
      const displayedData = hasMore ? records.slice(0, maxItems) : records;
 
+     const isSystemBrowseCategory = category.textId === 'system_user_lists' || category.textId === 'system_saved_searches' || category.textId === 'system_recommended_for_you';
+
      let subCategoryRecords = [];
      let subCategoryHasMore = false;
      if (showSubCategoryRecords) {
@@ -101,7 +103,7 @@ const DisplayBrowseCategory = ({category}) => {
                     {subCategories.length > 0 ? (
                          <>
                               <ScrollView horizontal>
-                                   <DisplaySubCategoryBar data={subCategoryRecords} subCategories={subCategories} selectedIndex={selectedSubCategoryIndex} onSelect={handleSelectSubCategory} />
+                                   <DisplaySubCategoryBar data={subCategoryRecords} subCategories={subCategories} selectedIndex={selectedSubCategoryIndex} onSelect={handleSelectSubCategory} isSystemBrowseCategory={isSystemBrowseCategory} />
                               </ScrollView>
                               {showSubCategoryRecords && <FlatList pb="$8" data={subCategoryRecords} keyExtractor={(item, index) => item.key?.toString() ?? index.toString()} horizontal renderItem={({ item }) => <DisplayBrowseCategoryRecord record={item} />} ListFooterComponent={subCategoryHasMore ? <DisplayMoreResultsButton category={subCategories[selectedSubCategoryIndex]} /> : null} />}
                          </>
@@ -325,7 +327,7 @@ const DisplayBrowseCategoryRecord = ({record}) => {
      )
 }
 
-const DisplaySubCategoryBar = ({ subCategories, selectedIndex, onSelect, data }) => {
+const DisplaySubCategoryBar = ({ subCategories, selectedIndex, onSelect, data, isSystemBrowseCategory }) => {
      const queryClient = useQueryClient();
 
      const { theme, textColor, colorMode } = React.useContext(ThemeContext);
@@ -364,7 +366,7 @@ const DisplaySubCategoryBar = ({ subCategories, selectedIndex, onSelect, data })
                           <ButtonText fontWeight="$medium" color={theme['colors']['primary']['500-text']} >
                                {subCategory.label}
                           </ButtonText>
-                          <ButtonIcon as={MaterialIcons} name="close" onPress={() => onPressHideSubCategory(index)} size="sm" color={theme['colors']['primary']['500-text']} ml="$4" />
+                          {!isSystemBrowseCategory && (<ButtonIcon as={MaterialIcons} name="close" onPress={() => onPressHideSubCategory(index)} size="sm" color={theme['colors']['primary']['500-text']} ml="$4" />)}
                      </Button>
                 ))}
          </ButtonGroup>
