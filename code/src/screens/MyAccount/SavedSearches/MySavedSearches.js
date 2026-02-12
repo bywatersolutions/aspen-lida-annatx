@@ -19,7 +19,7 @@ import { getErrorMessage } from '../../../util/apiAuth';
 
 export const MySavedSearches = () => {
      const navigation = useNavigation();
-     const { user, updateSavedSearchesStorage } = React.useContext(UserContext);
+     const { user, savedSearches, updateSavedSearches } = React.useContext(UserContext);
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
      const { theme, textColor, colorMode } = React.useContext(ThemeContext);
@@ -35,11 +35,10 @@ export const MySavedSearches = () => {
      }, [navigation]);
 
      const { status, data, error, isFetching, isPreviousData } = useQuery(['saved_searches', user.id, library.baseUrl, language], () => fetchSavedSearches(library.baseUrl), {
-          placeholderData: [],
+          placeholderData: savedSearches,
           onSuccess: (data) => {
                if(data.ok) {
-                    setSearches(data.data.result?.searches ?? []);
-                    updateSavedSearchesStorage(data.data.result?.searches ?? []);
+                    updateSavedSearches(data.data.result?.searches ?? []);
                } else {
                     logDebugMessage("Error fetching saved searches for user");
                     logDebugMessage(data);
@@ -53,7 +52,7 @@ export const MySavedSearches = () => {
      });
 
      useQueries({
-          queries: searches.map((savedSearch) => {
+          queries: savedSearches?.map((savedSearch) => {
                return {
                     queryKey: ['saved_search', savedSearch.id, user.id],
                     queryFn: () => getSavedSearch(savedSearch.id, language, library.baseUrl),
@@ -84,11 +83,7 @@ export const MySavedSearches = () => {
 
      return (
           <SafeAreaView style={{ flex: 1 }}>
-               <Box p="$5"
-                    bgColor={colorMode === 'light' ? theme['colors']['coolGray']['100'] : theme['colors']['coolGray']['700']}
-                    borderBottomWidth="$1"
-                    borderColor={colorMode === 'light' ? theme['colors']['coolGray']['200'] : theme['colors']['gray']['600']}
-                    >
+               <Box>
                     {showSystemMessage()}
                     {status === 'loading' || isFetching ? (
                          loadingSpinner()
@@ -96,7 +91,7 @@ export const MySavedSearches = () => {
                          loadError('Error', '')
                     ) : (
                          <>
-                              <FlatList data={searches} ListEmptyComponent={Empty} renderItem={({ item }) => <Item data={item} />} keyExtractor={(item, index) => index.toString()} contentContainerStyle={{ paddingBottom: 30 }} />
+                              <FlatList data={savedSearches} ListEmptyComponent={Empty} renderItem={({ item }) => <Item data={item} />} keyExtractor={(item, index) => index.toString()} contentContainerStyle={{ paddingBottom: 30 }} />
                          </>
                     )}
                </Box>
@@ -128,14 +123,12 @@ const Item = (data) => {
                     openSavedSearch();
                }}
                borderBottomWidth="$1"
-               _dark={{ borderColor: 'gray.600' }}
-               borderColor="coolGray.200"
-               pl="1"
-               pr="1"
-               py="2">
-               <HStack space={3} justifyContent="flex-start">
-                    <VStack space={1}>{/*<Image source={{uri: item.cover}} alt={item.title} size="lg" resizeMode="contain" />*/}</VStack>
-                    <VStack space={1} justifyContent="space-between" maxW="80%">
+               borderColor={colorMode === 'light' ? theme['colors']['coolGray']['200'] : theme['colors']['gray']['600']}
+               px="$1"
+               py="$2">
+               <HStack space="md" justifyContent="flex-start">
+                    <VStack space="sm">{/*<Image source={{uri: item.cover}} alt={item.title} size="lg" resizeMode="contain" />*/}</VStack>
+                    <VStack space="sm" justifyContent="space-between" maxW="80%">
                          <Box>
                               <Text bold fontSize="$md" color={textColor}>
                                    {item.title}{' '}

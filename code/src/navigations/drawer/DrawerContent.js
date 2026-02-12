@@ -65,7 +65,7 @@ export const DrawerContent = () => {
      const linkTo = useLinkTo();
      const queryClient = useQueryClient();
      const insets = useSafeAreaInsets();
-     const { user, accounts, viewers, cards, lists, updateUser, updateLanguage, updatePickupLocations, updateLinkedAccounts, updatePreferredPickupLocationIsValid, updatePreferredPickupLocationWarning, updateLists, updateSavedEvents, updateLibraryCards, updateLinkedViewerAccounts, updateReadingHistory, notificationSettings, expoToken, updateNotificationOnboard, notificationOnboard, notificationHistory, updateNotificationHistory, userHoldPendingSortMethod, userHoldReadySortMethod, userCheckoutSortMethod, updateListGroups } = React.useContext(UserContext);
+     const { user, accounts, viewers, cards, lists, updateUser, updateLanguage, updatePickupLocations, updateLinkedAccounts, updatePreferredPickupLocationIsValid, updatePreferredPickupLocationWarning, updateLists, updateSavedEvents, updateLibraryCards, updateLinkedViewerAccounts, updateReadingHistory, notificationSettings, expoToken, updateNotificationOnboard, notificationOnboard, notificationHistory, updateNotificationHistory, userHoldPendingSortMethod, userHoldReadySortMethod, userCheckoutSortMethod, updateListGroups, updateSavedSearches } = React.useContext(UserContext);
      const { library, catalogStatus, updateCatalogStatus, updateHomeScreenLinks } = React.useContext(LibrarySystemContext);
      const [notifications, setNotifications] = React.useState([]);
      const [messages, setILSMessages] = React.useState([]);
@@ -420,7 +420,7 @@ export const DrawerContent = () => {
           placeholderData: [],
           onSuccess: (data) => {
                if(data.ok) {
-                    updateSavedSearchesStorage(data.data.result?.searches ?? []);
+                    updateSavedSearches(data.data.result?.searches ?? []);
                } else {
                     logDebugMessage("Error fetching saved searches for user");
                     logDebugMessage(data);

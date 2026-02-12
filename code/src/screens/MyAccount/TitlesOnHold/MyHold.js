@@ -19,6 +19,7 @@ import { SelectThawDate } from './SelectThawDate.js';
 import { PATRON } from '../../../util/loadPatron';
 
 import { logDebugMessage, logInfoMessage, logWarnMessage, logErrorMessage } from '../../../util/logging.js';
+import { useQueryClient } from '@tanstack/react-query';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
@@ -562,11 +563,13 @@ export const ManageSelectedHolds = (props) => {
 };
 
 export const ManageAllHolds = (props) => {
+     const queryClient = useQueryClient();
      const { resetGroup } = props;
      const { language } = React.useContext(LanguageContext);
      const { holds, updateHolds } = React.useContext(HoldsContext);
      const { library } = React.useContext(LibrarySystemContext);
      const { theme, colorMode, textColor } = React.useContext(ThemeContext);
+     const { user } = React.useContext(UserContext);
      const insets = useSafeAreaInsets();
 
      const [showActionsheet, setShowActionsheet] = React.useState(false)
@@ -645,6 +648,7 @@ export const ManageAllHolds = (props) => {
                                         onClose(onClose);
                                         startFreezing(false);
                                    });
+                                   queryClient.invalidateQueries({ queryKey: ['holds', user.id, library.baseUrl, language] });
                               }}>
                               <ActionsheetItemText color={textColor}>{numToFreezeLabel}</ActionsheetItemText>
                          </ActionsheetItem>
@@ -681,6 +685,7 @@ export const ManageAllHolds = (props) => {
                                              handleClose();
                                              startCancelling(false);
                                         });
+                                        queryClient.invalidateQueries({ queryKey: ['holds', user.id, library.baseUrl, language] });
                                    }}>
                                    <ActionsheetItemText color={textColor}>{numToCancelLabel}</ActionsheetItemText>
                               </ActionsheetItem>
@@ -697,6 +702,7 @@ export const ManageAllHolds = (props) => {
                                              handleClose();
                                              startThawing(false);
                                         });
+                                        queryClient.invalidateQueries({ queryKey: ['holds', user.id, library.baseUrl, language] });
                                    }}>
                                    <ActionsheetItemText color={textColor}>{numToThawLabel}</ActionsheetItemText>
                               </ActionsheetItem>

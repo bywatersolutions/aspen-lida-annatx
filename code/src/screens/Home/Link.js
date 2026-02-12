@@ -3,7 +3,7 @@ import React from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { Dimensions } from 'react-native';
 
-import { LanguageContext, LibrarySystemContext, ThemeContext } from '../../context/initialContext';
+import { LanguageContext, LibrarySystemContext, SearchContext, ThemeContext } from '../../context/initialContext';
 import { Image } from 'expo-image';
 import { MaterialIcons } from '@expo/vector-icons';
 import { logErrorMessage } from '../../util/logging';
@@ -48,6 +48,8 @@ const Link = ({link}) => {
      const { theme, textColor, colorMode } = React.useContext(ThemeContext);
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
+     const { updateCurrentIndex } = React.useContext(SearchContext);
+
      const navigation = useNavigation();
 
      const handleOpenLink = () => {
@@ -68,6 +70,8 @@ const Link = ({link}) => {
           // Navigate to internal screen based on link.deepLinkPath
           if (!link?.deepLinkPath) return;
           const segments = link.deepLinkPath.split('/');
+
+          console.log(link);
 
           try {
                // Map deep link paths to actual navigation structure
@@ -106,22 +110,31 @@ const Link = ({link}) => {
                     case 'search':
                          if (segments[1]) {
                               const searchScreenMap = {
-                                   'browse_category': 'SearchByCategory',
-                                   'author': 'SearchByAuthor',
-                                   'list': 'SearchByList',
-                                   'grouped_work': 'GroupedWorkScreen'
+                                   browse_category: 'SearchByCategory',
+                                   author: 'SearchByAuthor',
+                                   list: 'SearchByList',
+                                   grouped_work: 'GroupedWorkScreen',
+                                   search: 'SearchResults',
                               };
 
                               if (searchScreenMap[segments[1]]) {
-                                   navigation.navigate('BrowseTab', {
-                                        screen: searchScreenMap[segments[1]],
-                                        params: segments[2] ? { id: segments[2] } : {}
-                                   });
-                              } else {
-                                   navigation.navigate('BrowseTab', { screen: 'SearchResults' });
+                                   if(segments[1] === 'browse_category' || segments[1] === 'list' || segments[1] === 'grouped_work') {
+                                        console.log(searchScreenMap[segments[1]]);
+                                        navigation.navigate('BrowseTab', {
+                                             screen: searchScreenMap[segments[1]],
+                                             params: link.deepLinkId ? { id: link.deepLinkId, title: link.title } : {},
+                                        });
+                                   } else if(segments[1] === 'author') {
+                                        updateCurrentIndex('Author');
+                                        navigation.navigate('BrowseTab', {
+                                             screen: 'SearchResults',
+                                             params: link.deepLinkId ? { term: link.deepLinkId, title: link.deepLinkId } : {},
+                                        });
+
+                                   }
                               }
                          } else {
-                              navigation.navigate('BrowseTab', { screen: 'SearchResults' });
+                              navigation.navigate('BrowseTab', { screen: 'SearchResults', params: link.deepLinkId ? { term: link.deepLinkId, title: link.deepLinkId } : {} });
                          }
                          break;
                     default:

@@ -92,6 +92,14 @@ export const MyLists = () => {
                if(currentListGroup === -1 && defaultListGroup) {
                     updateSelectedListGroup(defaultListGroup);
                }
+
+               if(lists && !hasListGroups) {
+                    setPage(lists.page_current ?? 1);
+                    let tmp = getTermFromDictionary(language, 'page_of_page');
+                    tmp = tmp.replace('%1%', lists.page_current ?? 1);
+                    tmp = tmp.replace('%2%', lists.page_total ?? 1);
+                    setPaginationLabel(tmp);
+               }
           }
      }, [isFocused]);
 
@@ -215,18 +223,19 @@ export const MyLists = () => {
           }
           await getLists(library.baseUrl, value, pageSize, 1).then((res) => {
                if (res.ok) {
-                    const results = data.data.result;
+                    const results = res.data.result;
                     updateLists(results);
                     let tmp = getTermFromDictionary(language, 'page_of_page');
                     tmp = tmp.replace('%1%', page ?? 1);
-                    tmp = tmp.replace('%2%', data.page_total ?? 1);
+                    tmp = tmp.replace('%2%', results.page_total ?? 1);
                     setPaginationLabel(tmp);
                } else {
-                    logDebugMessage('Error fetching user list group details for group ' + groupId);
+                    logDebugMessage('Error fetching user lists');
                     logDebugMessage(res);
                     getErrorMessage(res.code ?? 0, res.problem);
                }
           });
+          setLoading(false);
      };
 
      const handleOpenList = (item) => {

@@ -64,6 +64,8 @@ export const UserContext = React.createContext({
      updatePreferredPickupLocationIsValid: () => {},
      preferredPickupLocationWarning: "",
      updatePreferredPickupLocationWarning: () => {},
+     savedSearches: [],
+     updateSavedSearches: () => {},
 });
 export const LibrarySystemContext = React.createContext({
      updateLibrary: () => {},
@@ -410,6 +412,7 @@ export const UserProvider = ({ children }) => {
      const [userHoldReadySortMethod, setUserHoldReadySortMethod] = useState('expire');
      const [preferredPickupLocationIsValid, setPreferredPickupLocationIsValid] = useState(true);
      const [preferredPickupLocationWarning, setPreferredPickupLocationWarning] = useState("");
+     const [savedSearches, setSavedSearches] = useState([]);
 
      const updateUser = (data) => {
           if (user !== data) {
@@ -515,6 +518,11 @@ export const UserProvider = ({ children }) => {
      const updatePreferredPickupLocationWarning = (data) => {
           setPreferredPickupLocationWarning(data);
           //logDebugMessage('updated preferredPickupLocationWarning to ' + data + ' in UserContext');
+     };
+
+     const updateSavedSearches = (data) => {
+          setSavedSearches(data);
+          //logDebugMessage('updated updateSavedSearches to ' + data + ' in UserContext');
      };
 
      const updateNotificationSettings = async (data, language, userOnboardStatus) => {
@@ -744,7 +752,9 @@ export const UserProvider = ({ children }) => {
                     updatePreferredPickupLocationIsValid,
                     preferredPickupLocationIsValid,
                     updatePreferredPickupLocationWarning,
-                    preferredPickupLocationWarning
+                    preferredPickupLocationWarning,
+                    savedSearches,
+                    updateSavedSearches,
                }}>
                {children}
           </UserContext.Provider>
