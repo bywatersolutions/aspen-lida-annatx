@@ -176,7 +176,9 @@ const DisplayBrowseCategoryRecord = ({record}) => {
           }
      }
 
-     if (!_.isUndefined(record.recordtype)) {
+     if (!_.isUndefined(record.type)) {
+          type = record.type;
+     } else if (!_.isUndefined(record.recordtype)) {
           type = record.recordtype;
      }
 
@@ -189,7 +191,7 @@ const DisplayBrowseCategoryRecord = ({record}) => {
           id = record.sourceId;
      }
 
-     if (type === 'Event') {
+     if (type === 'Event' || type === 'event') {
           if (_.includes(id, 'lc_')) {
                type = 'library_calendar_event';
           }
