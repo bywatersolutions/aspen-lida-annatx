@@ -1,26 +1,30 @@
-import _ from 'lodash';
 import { useRoute, useNavigation } from '@react-navigation/native';
-import { Box, Button, Checkbox, CheckIcon, FormControl, Input, Select, Text, TextArea, ScrollView } from 'native-base';
+import { Box, Button, ButtonText, ButtonSpinner, Checkbox, CheckboxIndicator, CheckboxIcon, CheckboxLabel, CheckIcon, FormControl, FormControlLabel, FormControlLabelText, Input, InputField, Select, SelectTrigger, SelectInput, SelectIcon, SelectPortal, SelectBackdrop, SelectContent, SelectDragIndicatorWrapper, SelectDragIndicator, SelectItem, Text, Textarea, TextareaInput, ScrollView, HStack, ChevronDownIcon, Alert, AlertText } from '@gluestack-ui/themed';
 import React from 'react';
 import { Platform } from 'react-native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { loadingSpinner } from '../../components/loadingSpinner';
 import { submitLocalIllRequest } from '../../util/recordActions';
-import { LanguageContext, LibraryBranchContext, LibrarySystemContext, UserContext } from '../../context/initialContext';
+import { LanguageContext, LibraryBranchContext, LibrarySystemContext, UserContext, ThemeContext } from '../../context/initialContext';
 import { popAlert, loadError } from '../../components/loadError';
 import { getLocalIllForm } from '../../util/loadLibrary';
-import { logInfoMessage } from '../../util/logging';
+import { logDebugMessage, logErrorMessage, logInfoMessage } from '../../util/logging';
+import { getErrorMessage, stripHTML } from '../../util/apiAuth';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export const CreateLocalIllRequest = () => {
+     const [formConfig, setFormConfig] = React.useState([]);
+     const [hasError, setHasError] = React.useState(false);
+     const { library } = React.useContext(LibrarySystemContext);
+     const { location } = React.useContext(LibraryBranchContext);
      const route = useRoute();
+
      const id = route.params.id;
      const title = route.params.workTitle ?? null;
      const volumeId = route.params.volumeId ?? null;
      const volumeName = route.params.volumeName ?? null;
-     const { library } = React.useContext(LibrarySystemContext);
-     const { location } = React.useContext(LibraryBranchContext);
 
-     if (location.localIllFormId === '-1' || _.isNull(location.localIllFormId)) {
+     if (String(location.localIllFormId) === '-1' || location.localIllFormId === null) {
           return loadError('The ILL System is not setup properly, please contact your library to place a request', '');
      }
 
@@ -32,29 +36,54 @@ export const CreateLocalIllRequest = () => {
      const { status, data, error, isFetching } = useQuery({
           queryKey: ['localIllForm', location.localIllFormId, library.baseUrl],
           queryFn: () => getLocalIllForm(library.baseUrl, location.localIllFormId),
+          onSuccess: (data) => {
+               try {
+                    if (data.ok) {
+                         setFormConfig(data.data.result);
+                    }
+               } catch (e) {
+                    setHasError(true);
+                    logDebugMessage('Error fetching local ILL form configuration');
+                    logDebugMessage(data);
+                    getErrorMessage(data.code, data.data.result);
+               }
+          },
+          onError: (error) => {
+               logDebugMessage('Error fetching local ILL form configuration');
+               logErrorMessage(error);
+          },
      });
 
-     return <>{status === 'loading' || isFetching ? loadingSpinner() : status === 'error' ? loadError('Error', '') : <Request config={data} workId={id} workTitle={title} volumeId={volumeId} volumeName={volumeName} />}</>;
+     return <>{status === 'loading' || isFetching ? loadingSpinner() : (hasError || status === 'error') ? loadError('The ILL System is not setup properly, please contact your library to place a request', '') : <Request config={formConfig} workId={id} workTitle={title} volumeId={volumeId} volumeName={volumeName} />}</>;
 };
 
 const Request = (payload) => {
-     const navigation = useNavigation();
-     const queryClient = useQueryClient();
-     const { config, workId, workTitle, volumeId, volumeName } = payload;
-     const { library } = React.useContext(LibrarySystemContext);
-     const { user } = React.useContext(UserContext);
-     const { language } = React.useContext(LanguageContext);
-
-     const [title, setTitle] = React.useState(workTitle);
+     const [title, setTitle] = React.useState('');
      const [note, setNote] = React.useState('');
      const [acceptFee, setAcceptFee] = React.useState(false);
      const [pickupLocation, setPickupLocation] = React.useState();
-
      const [isSubmitting, setIsSubmitting] = React.useState(false);
+     const [errorMessage, setErrorMessage] = React.useState('');
+     const { library } = React.useContext(LibrarySystemContext);
+     const { user } = React.useContext(UserContext);
+     const { language } = React.useContext(LanguageContext);
+     const { theme, colorMode, textColor } = React.useContext(ThemeContext);
+     const navigation = useNavigation();
+     const queryClient = useQueryClient();
+     const insets = useSafeAreaInsets();
+
+     const { config, workId, workTitle, volumeId, volumeName } = payload;
+
+     // Make sure we have a valid config object before trying to render the form
+     if (!config || !config.fields || typeof config.fields !== 'object') {
+          logDebugMessage('Local ILL Form configuration is invalid');
+          logDebugMessage(config);
+          return loadError('The ILL System is not setup properly, please contact your library to place a request', '');
+     }
 
      const handleSubmission = async () => {
           const request = {
-               title: title ?? null,
+               title: title ?? workTitle,
                acceptFee: acceptFee,
                note: note ?? null,
                catalogKey: workId ?? null,
@@ -64,11 +93,12 @@ const Request = (payload) => {
           await submitLocalIllRequest(library.baseUrl, request).then(async (result) => {
                setIsSubmitting(false);
                if (result.success) {
+                    setErrorMessage('');
                     navigation.goBack();
                     queryClient.invalidateQueries({ queryKey: ['holds', user.id, library.baseUrl, language] });
                     queryClient.invalidateQueries({ queryKey: ['user', library.baseUrl, language] });
                } else {
-                    popAlert(result.title, result.message, 'error');
+                    setErrorMessage(result.message);
                }
           });
      };
@@ -77,8 +107,8 @@ const Request = (payload) => {
           const field = config.fields.introText;
           if (field.display === 'show') {
                return (
-                    <Text fontSize="sm" pb={3}>
-                         {field.label}
+                    <Text size="sm" pb="$3" color={textColor}>
+                         {stripHTML(field.label)}
                     </Text>
                );
           }
@@ -88,21 +118,25 @@ const Request = (payload) => {
      const getTitleField = () => {
           const field = config.fields.title;
           if (field.display === 'show') {
-               let fullTitle = title;
-               if (volumeName != undefined) {
+               let fullTitle = workTitle;
+               if (volumeName !== undefined) {
                     fullTitle += " " + volumeName;
                }
                return (
-                    <FormControl my={2} isRequired={field.required}>
-                         <FormControl.Label>{field.label}</FormControl.Label>
-                         <Input
-                              name={field.property}
-                              defaultValue={fullTitle}
-                              accessibilityLabel={field.description ?? field.label}
-                              onChangeText={(value) => {
-                                   setTitle(value);
-                              }}
-                         />
+                    <FormControl my="$2" isRequired={field.required}>
+                         <FormControlLabel>
+                              <FormControlLabelText color={textColor}>{field.label}</FormControlLabelText>
+                         </FormControlLabel>
+                         <Input>
+                              <InputField
+                                   name={field.property}
+                                   defaultValue={fullTitle}
+                                   accessibilityLabel={field.description ?? field.label}
+                                   onChangeText={(value) => {
+                                        setTitle(value);
+                                   }}
+                              />
+                         </Input>
                     </FormControl>
                );
           }
@@ -111,8 +145,12 @@ const Request = (payload) => {
 
      const getFeeInformation = () => {
           const field = config.fields.feeInformationText;
-          if (field.display === 'show' && !_.isEmpty(field.label)) {
-               return <Text bold>{field.label}</Text>;
+          if (field.display === 'show' && field.label && field.label.trim() !== '') {
+               return (
+                    <Text fontWeight="bold" color={textColor}>
+                         {stripHTML(field.label)}
+                    </Text>
+               );
           }
           return null;
      };
@@ -121,15 +159,21 @@ const Request = (payload) => {
           const field = config.fields.acceptFee;
           if (field.display === 'show') {
                return (
-                    <FormControl my={2} maxW="90%" isRequired={field.required}>
+                    <FormControl my="$2" maxWidth="90%" isRequired={field.required}>
                          <Checkbox
-                              name={field.property}
+                              value="accept"
                               accessibilityLabel={field.description ?? field.label}
                               onChange={(value) => {
                                    setAcceptFee(value);
-                              }}
-                              value>
-                              {field.label}
+                              }}>
+                              <CheckboxIndicator mr="$2">
+                                   <CheckboxIcon>
+                                        <CheckIcon />
+                                   </CheckboxIcon>
+                              </CheckboxIndicator>
+                              <CheckboxLabel>
+                                   <Text color={textColor}>{field.label}</Text>
+                              </CheckboxLabel>
                          </Checkbox>
                     </FormControl>
                );
@@ -141,16 +185,20 @@ const Request = (payload) => {
           const field = config.fields.note;
           if (field.display === 'show') {
                return (
-                    <FormControl my={2} isRequired={field.required}>
-                         <FormControl.Label>{field.label}</FormControl.Label>
-                         <TextArea
-                              name={field.property}
-                              value={note}
-                              accessibilityLabel={field.description ?? field.label}
-                              onChangeText={(text) => {
-                                   setNote(text);
-                              }}
-                         />
+                    <FormControl my="$2" isRequired={field.required}>
+                         <FormControlLabel>
+                              <FormControlLabelText color={textColor}>{field.label}</FormControlLabelText>
+                         </FormControlLabel>
+                         <Textarea>
+                              <TextareaInput
+                                   name={field.property}
+                                   value={note}
+                                   accessibilityLabel={field.description ?? field.label}
+                                   onChangeText={(text) => {
+                                        setNote(text);
+                                   }}
+                              />
+                         </Textarea>
                     </FormControl>
                );
           }
@@ -159,27 +207,41 @@ const Request = (payload) => {
 
      const getPickupLocations = () => {
           const field = config.fields.pickupLocation;
-          if (field.display === 'show' && _.isArray(field.options)) {
+          if (field.display === 'show' && Array.isArray(field.options)) {
                const locations = field.options;
                return (
-                    <FormControl my={2} isRequired={field.required}>
-                         <FormControl.Label>{field.label}</FormControl.Label>
+                    <FormControl my="$2" isRequired={field.required}>
+                         <FormControlLabel>
+                              <FormControlLabelText color={textColor}>{field.label}</FormControlLabelText>
+                         </FormControlLabel>
                          <Select
-                              isReadOnly={Platform.OS === 'android'}
-                              name="pickupLocation"
-                              defaultValue={pickupLocation}
-                              accessibilityLabel={field.description ?? field.label}
-                              _selectedItem={{
-                                   bg: 'tertiary.300',
-                                   endIcon: <CheckIcon size="5" />,
-                              }}
                               selectedValue={pickupLocation}
                               onValueChange={(itemValue) => {
                                    setPickupLocation(itemValue);
                               }}>
-                              {locations.map((location, index) => {
-                                   return <Select.Item label={location.displayName} value={location.code} />;
-                              })}
+                              <SelectTrigger variant="outline" size="md">
+                                   {pickupLocation ? (
+                                        locations.map((location, index) => {
+                                             if (location.code === pickupLocation) {
+                                                  return <SelectInput key={index} value={location.displayName} color={textColor} />;
+                                             }
+                                        })
+                                   ) : (
+                                        <SelectInput placeholder="Select a pickup location" color={textColor} />
+                                   )}
+                                   <SelectIcon mr="$3" as={ChevronDownIcon} color={textColor} />
+                              </SelectTrigger>
+                              <SelectPortal>
+                                   <SelectBackdrop />
+                                   <SelectContent bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']} pb={Platform.OS === 'android' ? insets.bottom + 16 : '$4'}>
+                                        <SelectDragIndicatorWrapper>
+                                             <SelectDragIndicator />
+                                        </SelectDragIndicatorWrapper>
+                                        {locations.map((location, index) => {
+                                             return <SelectItem key={index} label={location.displayName} value={location.code} bgColor={pickupLocation === location.code ? theme['colors']['tertiary']['300'] : ''} sx={{ _text: { color: pickupLocation === location.code ? theme['colors']['tertiary']['500-text'] : textColor } }} />;
+                                        })}
+                                   </SelectContent>
+                              </SelectPortal>
                          </Select>
                     </FormControl>
                );
@@ -191,9 +253,13 @@ const Request = (payload) => {
           const field = config.fields.catalogKey;
           if (field.display === 'show') {
                return (
-                    <FormControl my={2} isDisabled isRequired={field.required}>
-                         <FormControl.Label>{field.label}</FormControl.Label>
-                         <Input name={field.property} defaultValue={catalogKey} accessibilityLabel={field.description ?? field.label} />
+                    <FormControl my="$2" isDisabled isRequired={field.required}>
+                         <FormControlLabel>
+                              <FormControlLabelText color={textColor}>{field.label}</FormControlLabelText>
+                         </FormControlLabel>
+                         <Input>
+                              <InputField name={field.property} defaultValue={catalogKey} accessibilityLabel={field.description ?? field.label} />
+                         </Input>
                     </FormControl>
                );
           }
@@ -204,9 +270,13 @@ const Request = (payload) => {
           const field = config.fields.volumeId;
           if (field.display === 'show') {
                return (
-                    <FormControl my={2} isDisabled isRequired={field.required}>
-                         <FormControl.Label>{field.label}</FormControl.Label>
-                         <Input name={field.property} defaultValue={volumeId} accessibilityLabel={field.description ?? field.label} />
+                    <FormControl my="$2" isDisabled isRequired={field.required}>
+                         <FormControlLabel>
+                              <FormControlLabelText color={textColor}>{field.label}</FormControlLabelText>
+                         </FormControlLabel>
+                         <Input>
+                              <InputField name={field.property} defaultValue={volumeId} accessibilityLabel={field.description ?? field.label} />
+                         </Input>
                     </FormControl>
                );
           }
@@ -215,27 +285,49 @@ const Request = (payload) => {
 
      const getActions = () => {
           return (
-               <Button.Group pt={3}>
+               <HStack space="md" pt="$3">
                     <Button
-                         colorScheme="secondary"
-                         isLoading={isSubmitting}
-                         isLoadingText={config.buttonLabelProcessing}
+                         bgColor={theme['colors']['secondary']['500']}
+                         isDisabled={isSubmitting}
                          onPress={() => {
                               setIsSubmitting(true);
                               handleSubmission();
                          }}>
-                         {config.buttonLabel}
+                         <ButtonText color={theme['colors']['secondary']['500-text']}>
+                              {isSubmitting ? (
+                                   <>
+                                        <ButtonSpinner mr="$2" />
+                                        {config.buttonLabelProcessing}
+                                   </>
+                              ) : (
+                                   config.buttonLabel
+                              )}
+                         </ButtonText>
                     </Button>
-                    <Button colorScheme="secondary" variant="outline" onPress={() => navigation.goBack()}>
-                         Cancel
+                    <Button variant="outline" onPress={() => navigation.goBack()} borderColor={colorMode === 'light' ? theme['colors']['warmGray']['300'] : theme['colors']['coolGray']['500']}>
+                         <ButtonText color={colorMode === 'light' ? theme['colors']['warmGray']['500'] : theme['colors']['coolGray']['300']}>Cancel</ButtonText>
                     </Button>
-               </Button.Group>
+               </HStack>
           );
+     };
+
+     const getErrorMessage = () => {
+          if (errorMessage) {
+               return (
+                    <Alert width="100%" maxW="100%" action="warning" variant="solid">
+                         <AlertText size="xs" bold>
+                              {errorMessage}
+                         </AlertText>
+                    </Alert>
+               );
+          }
+          return null;
      };
 
      return (
           <ScrollView>
-               <Box safeArea={5}>
+               <Box p="$5">
+                    {errorMessage ? getErrorMessage() : null}
                     {getIntroText()}
                     {getTitleField()}
                     {getNoteField()}

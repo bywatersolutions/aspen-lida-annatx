@@ -4,7 +4,7 @@ import React from 'react';
 import { useNavigation } from '@react-navigation/native';
 
 // custom components and helper files
-import { LOGIN_DATA } from './globals';
+import { LOGIN_DATA, GLOBALS } from './globals';
 import { LIBRARY } from './loadLibrary';
 import { PATRON } from './loadPatron';
 import { BrowseCategoryContext, LibraryBranchContext, LibrarySystemContext, UserContext } from '../context/initialContext';
@@ -43,7 +43,7 @@ export async function RemoveData(queryClient, updateUser) {
      LIBRARY.url = null;
      LIBRARY.name = null;
      LIBRARY.favicon = null;
-     LIBRARY.version = '22.10.00';
+     LIBRARY.version = GLOBALS.appVersion;
      LIBRARY.languages = [];
      LIBRARY.vdx = [];
      LIBRARY.localIll = [];
