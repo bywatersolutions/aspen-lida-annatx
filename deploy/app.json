@@ -1,0 +1,15 @@
+{
+  "name": "Anna Community Library",
+  "slug": "annatx",
+  "easId": "e95b24a1-c7ef-4e79-ac36-b3aad3469f1a",
+  "reverseDns": "org.aspendiscovery.annatx",
+  "discoveryUrl": "https://annatx.aspendiscovery.org/",
+  "greenhouseUrl": "https://annatx.aspendiscovery.org/",
+  "libraryId": "2",
+  "themeId": "1",
+  "background": "#ffffff",
+  "sentryProject": "aspen-lida-annatx",
+  "sentryDsn": "https://18034bbc2814aeced4e97d479255d7e9@o994439.ingest.us.sentry.io/4508688627531776",
+  "ascAppId": "6741077147",
+  "logLevel": "0"
+}
