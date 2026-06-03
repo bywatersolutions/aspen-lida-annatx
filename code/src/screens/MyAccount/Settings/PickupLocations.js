@@ -159,9 +159,9 @@ export const Settings_PickupLocations = () => {
 							</SelectDragIndicatorWrapper>
 								{locations.map((availableLocations, index) => {
 									if (availableLocations.code === location) {
-										return <SelectItem label={availableLocations.name} value={availableLocations.code} key={index} bgColor={theme['colors']['tertiary']['300']} sx={{ _text: { color: theme['colors']['tertiary']['500-text'] } }} />;
+										return <SelectItem label={availableLocations.displayName} value={availableLocations.code} key={index} bgColor={theme['colors']['tertiary']['300']} sx={{ _text: { color: theme['colors']['tertiary']['500-text'] } }} />;
 									}
-									return <SelectItem label={availableLocations.name} value={availableLocations.code} key={index} sx={{
+									return <SelectItem label={availableLocations.displayName} value={availableLocations.code} key={index} sx={{
 										_text: { color: textColor }
 									}} />;
 								})}
