@@ -184,6 +184,10 @@ jobs:
             exit 1
           fi
         working-directory: ./code
+      
+      - name: Debug expo config
+        working-directory: ./code 
+        run: npx expo config --json --type public
 
       - name: 📱 Build App for ${{ matrix.platform }}
         run: |
