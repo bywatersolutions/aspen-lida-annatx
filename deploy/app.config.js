@@ -179,7 +179,6 @@ module.exports = () => {
          },
          plugins: [
               'expo-secure-store',
-              'expo-localization',
               'expo-notifications',
               'expo-sqlite',
               'expo-font',
