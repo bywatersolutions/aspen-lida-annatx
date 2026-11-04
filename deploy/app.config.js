@@ -2,6 +2,15 @@ const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 
+function getSentryUploadUrl(sentryDsn) {
+     try {
+          return new URL(sentryDsn).origin + '/';
+     } catch (e) {
+          console.log('⚠️  Could not derive Sentry upload url from DSN: ' + sentryDsn);
+          return undefined;
+     }
+}
+
 function ensureDir(dir) {
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
@@ -196,6 +205,7 @@ module.exports = () => {
                         authToken: sentryAuthToken,
                         organization: "bywater-solutions",
                         project: app['sentryProject'],
+                        url: getSentryUploadUrl(app['sentryDsn']),
                    },
               ],
               [
